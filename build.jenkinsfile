@@ -19,18 +19,14 @@ pipeline {
                         def tagCmd = "docker tag ${DOCKER_IMAGE_NAME}:${TAG} ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${TAG}"
                         def pushCmd = "docker push ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${TAG}"
 
-                        // Execute commands and handle errors
-                        if (sh returnStatus: true, script: loginCmd) != 0 {
-                            error 'Failed to login to Docker registry'
-                        }
-                        if (sh returnStatus: true, script: buildCmd) != 0 {
-                            error 'Failed to build Docker image'
-                        }
-                        if (sh returnStatus: true, script: tagCmd) != 0 {
-                            error 'Failed to tag Docker image'
-                        }
-                        if (sh returnStatus: true, script: pushCmd) != 0 {
-                            error 'Failed to push Docker image to registry'
+                        try {
+                            sh returnStatus: true, script: loginCmd
+                            sh returnStatus: true, script: buildCmd
+                            sh returnStatus: true, script: tagCmd
+                            sh returnStatus: true, script: pushCmd
+                        } catch (Exception e) {
+                            echo "An error occurred: ${e.message}"
+                            currentBuild.result = 'FAILURE'
                         }
                     }
                 }
