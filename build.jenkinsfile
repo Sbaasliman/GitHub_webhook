@@ -14,17 +14,25 @@ pipeline {
                 script {
                     // Login to Docker registry
                     withCredentials([usernamePassword(credentialsId: DOCKER_REGISTRY_CREDENTIALS, usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}" || error 'Failed to login to Docker registry'
+                        def loginCmd = "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+                        def buildCmd = "docker build -t ${DOCKER_IMAGE_NAME}:${TAG} ."
+                        def tagCmd = "docker tag ${DOCKER_IMAGE_NAME}:${TAG} ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${TAG}"
+                        def pushCmd = "docker push ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${TAG}"
+
+                        // Execute commands and handle errors
+                        if (sh returnStatus: true, script: loginCmd) != 0 {
+                            error 'Failed to login to Docker registry'
+                        }
+                        if (sh returnStatus: true, script: buildCmd) != 0 {
+                            error 'Failed to build Docker image'
+                        }
+                        if (sh returnStatus: true, script: tagCmd) != 0 {
+                            error 'Failed to tag Docker image'
+                        }
+                        if (sh returnStatus: true, script: pushCmd) != 0 {
+                            error 'Failed to push Docker image to registry'
+                        }
                     }
-
-                    // Build Docker image
-                    sh "docker build -t ${DOCKER_IMAGE_NAME}:${TAG} ." || error 'Failed to build Docker image'
-
-                    // Tag Docker image
-                    sh "docker tag ${DOCKER_IMAGE_NAME}:${TAG} ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${TAG}" || error 'Failed to tag Docker image'
-
-                    // Push Docker image to Docker registry
-                    sh "docker push ${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME}:${TAG}" || error 'Failed to push Docker image to registry'
                 }
             }
         }
