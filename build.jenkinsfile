@@ -3,9 +3,13 @@ agent any
 stages {
     stage('build'){
         steps{
-            sh 'ls'
-            sh 'echo building...'
-            sh 'echo hellow '
+            sh '''
+            docker login --username sabaas --password dckr_pat_FcX6OvTBd2v-h7uru0ZPyd528W0
+           docker build -t Sabaa jenkinsdocker
+            docker tag Sabaa jenkinsdocker:latest
+            docker push jenkinsdocker:latest
+            '''
+
         }
     }
 }
