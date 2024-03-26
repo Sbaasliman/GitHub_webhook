@@ -1,32 +1,12 @@
-#
-# Ubuntu Dockerfile
-#
-# https://github.com/dockerfile/ubuntu
-#
 
-# Pull base image.
-FROM ubuntu:14.04
+# Use the latest version of Ubuntu as a parent image
+FROM ubuntu:latest
 
-# Install.
-RUN \
-  sed -i 's/# \(.*multiverse$\)/\1/g' /etc/apt/sources.list && \
-  apt-get update && \
-  apt-get -y upgrade && \
-  apt-get install -y build-essential && \
-  apt-get install -y software-properties-common && \
-  apt-get install -y byobu curl git htop man unzip vim wget && \
-  rm -rf /var/lib/apt/lists/*
+# Update the Ubuntu software repository
+RUN apt-get update
 
-# Add files.
-ADD root/.bashrc /root/.bashrc
-ADD root/.gitconfig /root/.gitconfig
-ADD root/.scripts /root/.scripts
+# Install nginx web server
+RUN apt-get install -y nginx
 
-# Set environment variables.
-ENV HOME /root
-
-# Define working directory.
-WORKDIR /root
-
-# Define default command.
-CMD ["bash"]
+# Start nginx when the container launches, running it in the foreground
+CMD ["nginx", "-g", "daemon off;"]
